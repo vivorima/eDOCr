@@ -183,7 +183,6 @@ def CTCDecoder():
 
     return tf.keras.layers.Lambda(decoder, name="decode")
 
-
 def build_model(
     alphabet,
     height,
@@ -196,19 +195,7 @@ def build_model(
     pool_size,
     stn=True,
 ):
-    """Build a Keras CRNN model for character recognition.
-
-    Args:
-        height: The height of cropped images
-        width: The width of cropped images
-        color: Whether the inputs should be in color (RGB)
-        filters: The number of filters to use for each of the 7 convolutional layers
-        rnn_units: The number of units for each of the RNN layers
-        dropout: The dropout to use for the final layer
-        rnn_steps_to_discard: The number of initial RNN steps to discard
-        pool_size: The size of the pooling steps
-        stn: Whether to add a Spatial Transformer layer
-    """
+    """Build a Keras CRNN model for character recognition."""
     assert len(filters) == 7, "7 CNN filters must be provided."
     assert len(rnn_units) == 2, "2 RNN filters must be provided."
     inputs = keras.layers.Input((height, width, 3 if color else 1))
@@ -241,50 +228,30 @@ def build_model(
     )(x)
     x = keras.layers.BatchNormalization(name="bn_7")(x)
     if stn:
-        # pylint: disable=pointless-string-statement
-        """Spatial Transformer Layer
-        Implements a spatial transformer layer as described in [1]_.
-        Borrowed from [2]_:
-        downsample_fator : float
-            A value of 1 will keep the orignal size of the image.
-            Values larger than 1 will down sample the image. Values below 1 will
-            upsample the image.
-            example image: height= 100, width = 200
-            downsample_factor = 2
-            output image will then be 50, 100
-        References
-        ----------
-        .. [1]  Spatial Transformer Networks
-                Max Jaderberg, Karen Simonyan, Andrew Zisserman, Koray Kavukcuoglu
-                Submitted on 5 Jun 2015
-        .. [2]  https://github.com/skaae/transformer_network/blob/master/transformerlayer.py
-        .. [3]  https://github.com/EderSantana/seya/blob/keras1/seya/layers/attention.py
-        """
         stn_input_output_shape = (
             width // pool_size**2,
             height // pool_size**2,
             filters[6],
         )
         stn_input_layer = keras.layers.Input(shape=stn_input_output_shape)
-        locnet_y = keras.layers.Conv2D(16, (5, 5), padding="same", activation="relu")(
-            stn_input_layer
-        )
-        locnet_y = keras.layers.Conv2D(32, (5, 5), padding="same", activation="relu")(
-            locnet_y
-        )
+        locnet_y = keras.layers.Conv2D(16, (5, 5), padding="same", activation="relu")(stn_input_layer)
+        locnet_y = keras.layers.Conv2D(32, (5, 5), padding="same", activation="relu")(locnet_y)
         locnet_y = keras.layers.Flatten()(locnet_y)
         locnet_y = keras.layers.Dense(64, activation="relu")(locnet_y)
-        locnet_y = keras.layers.Dense(
-            6,
-            weights=[
-                np.zeros((64, 6), dtype="float32"),
-                np.array([[1, 0, 0], [0, 1, 0]], dtype="float32").flatten(),
-            ],
-        )(locnet_y)
+        
+        # Create Dense layer without weights
+        dense_layer = keras.layers.Dense(6, activation=None)
+        locnet_y = dense_layer(locnet_y)
+        
+        # Set weights
+        weights = [
+            np.zeros((64, 6), dtype="float32"),
+            np.array([[1, 0, 0], [0, 1, 0]], dtype="float32").flatten(),
+        ]
+        dense_layer.set_weights(weights)
+        
         localization_net = keras.models.Model(inputs=stn_input_layer, outputs=locnet_y)
-        x = keras.layers.Lambda(_transform, output_shape=stn_input_output_shape)(
-            [x, localization_net(x)]
-        )
+        x = keras.layers.Lambda(_transform, output_shape=stn_input_output_shape)([x, localization_net(x)])
     x = keras.layers.Reshape(
         target_shape=(
             width // pool_size**2,
@@ -354,6 +321,7 @@ def build_model(
         inputs=[model.input, labels, input_length, label_length], outputs=loss
     )
     return backbone, model, training_model, prediction_model
+
 
 
 class Recognizer:
