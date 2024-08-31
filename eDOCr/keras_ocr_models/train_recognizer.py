@@ -79,6 +79,14 @@ def generate_n_train(alphabet, backgrounds, fonts, batch_size=12, recognizer_bas
         ) for image_generator in image_generators
     ]
 
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # Validation: Check the generated images for zero dimensions
+    for img, _ in recognition_image_generators[0]:
+        if img.shape[1] == 0 or img.shape[2] == 0:
+            print("Error: Image generator produced an invalid image with zero width or height.")
+            break
+
+
     recognition_train_generator, recognition_val_generator = [
         recognizer.get_batch_generator(
             image_generator=image_generator,
