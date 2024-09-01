@@ -139,6 +139,8 @@ def get_alfa(box):
     else:
         return (math.pi-alfa)/math.pi*180
 
+
+
 def subimage(image, center, theta, width, height):
    ''' 
    Rotates OpenCV image around center with angle theta (in deg)
@@ -236,13 +238,34 @@ def detect_the_patches(img,pipeline,patches_x=5,patches_y=4,ol=0.05,cluster_t=20
     snippets=pipeline.recognize_dimensions(np.int32(new_group),np.array(img))
     return snippets
 
-def read_dimensions(img,alphabet=None,weight_path=None,cluster_t=20):
-    if alphabet and weight_path: 
-        recognizer =recognition.Recognizer(alphabet=alphabet)
+# def read_dimensions(img,alphabet=None,weight_path=None,cluster_t=20):
+#     if alphabet and weight_path: 
+#         recognizer =recognition.Recognizer(alphabet=alphabet)
+#         recognizer.model.load_weights(weight_path)
+#     else:
+#         recognizer =recognition.Recognizer()
+#     pipeline=Pipeline(recognizer=recognizer)
+#     img=Image.open(img)
+#     snippets=detect_the_patches(img,pipeline,cluster_t=cluster_t)
+#     return snippets
+
+from PIL import Image
+import numpy as np
+
+def read_dimensions(img, alphabet=None, weight_path=None, cluster_t=20):
+    if alphabet and weight_path:
+        recognizer = recognition.Recognizer(alphabet=alphabet)
         recognizer.model.load_weights(weight_path)
     else:
-        recognizer =recognition.Recognizer()
-    pipeline=Pipeline(recognizer=recognizer)
-    img=Image.open(img)
-    snippets=detect_the_patches(img,pipeline,cluster_t=cluster_t)
+        recognizer = recognition.Recognizer()
+
+    pipeline = Pipeline(recognizer=recognizer)
+
+    # Check if img is a NumPy array or a file path
+    if isinstance(img, np.ndarray):
+        img_pil = Image.fromarray(img)  # Convert NumPy array to PIL Image
+    else:
+        img_pil = Image.open(img)  # Open the image if it's a file path
+
+    snippets = detect_the_patches(img_pil, pipeline, cluster_t=cluster_t)
     return snippets
