@@ -79,26 +79,19 @@ def warpBox(
         return_transform: Whether to return the transformation
             matrix with the image.
     """
-    # Print initial inputs
-    print(f"warpBox called with:")
-    print(f"  Image shape: {image.shape}")
-    print(f"  Box: {box}")
-    print(f"  Target height: {target_height}, Target width: {target_width}")
-    print(f"  Margin: {margin}, Skip Rotate: {skip_rotate}")
-
     if cval is None:
         cval = (0, 0, 0) if len(image.shape) == 3 else 0
 
     if not skip_rotate:
         box, _ = get_rotated_box(box)
-        print(f"  Rotated box: {box}")
+        # print(f"  Rotated box: {box}")
 
     w, h = get_rotated_width_height(box)
-    print(f"  Calculated width (w): {w}, height (h): {h}")
+    # print(f"  Calculated width (w): {w}, height (h): {h}")
 
     # Check for zero dimensions
     if w == 0 or h == 0 or target_width == 0 or target_height == 0:
-        print("Warning: Zero width, height, or target dimension encountered. Returning empty image.")
+        # print("Warning: Zero width, height, or target dimension encountered. Returning empty image.")
         target_shape = (
             (target_height, target_width, 3)
             if len(image.shape) == 3
@@ -114,15 +107,15 @@ def warpBox(
         target_width = w
         target_height = h
 
-    print(f"  Final Target width: {target_width}, Target height: {target_height}")
+    # print(f"  Final Target width: {target_width}, Target height: {target_height}")
 
     # Ensure scale calculation doesn't lead to a division by zero
     if w == 0 or h == 0:
         scale = 1.0  # Default to no scaling if dimensions are zero
-        print(f"  Warning: Zero dimension detected. Default scale set to 1.0")
+        # print(f"  Warning: Zero dimension detected. Default scale set to 1.0")
     else:
         scale = min(target_width / w, target_height / h)
-        print(f"  Calculated scale: {scale}")
+        # print(f"  Calculated scale: {scale}")
 
     # Calculate the transformation matrix
     try:
@@ -137,17 +130,17 @@ def warpBox(
                 ]
             ).astype("float32"),
         )
-        print(f"  Perspective transformation matrix (M):\n{M}")
+        # print(f"  Perspective transformation matrix (M):\n{M}")
     except Exception as e:
-        print(f"Error in calculating perspective transform: {e}")
+        # print(f"Error in calculating perspective transform: {e}")
         raise
 
     # Apply the transformation
     try:
         crop = cv2.warpPerspective(image, M, dsize=(int(scale * w), int(scale * h)))
-        print(f"  Cropped image shape: {crop.shape}")
+        # print(f"  Cropped image shape: {crop.shape}")
     except Exception as e:
-        print(f"Error in warping perspective: {e}")
+        # print(f"Error in warping perspective: {e}")
         raise
 
     target_shape = (
@@ -156,20 +149,20 @@ def warpBox(
         else (target_height, target_width)
     )
     full = (np.zeros(target_shape) + cval).astype("uint8")
-    print(f"  Full image shape: {full.shape}")
+    # print(f"  Full image shape: {full.shape}")
 
     # Apply the crop to the target shape
     try:
         full[: crop.shape[0], : crop.shape[1]] = crop
     except Exception as e:
-        print(f"Error in copying crop to full image: {e}")
+        # print(f"Error in copying crop to full image: {e}")
         raise
 
     if return_transform:
-        print(f"  Returning transformed image and matrix.")
+        # print(f"  Returning transformed image and matrix.")
         return full, M
     
-    print(f"  Returning transformed image.")
+    # print(f"  Returning transformed image.")
     return full
 
 

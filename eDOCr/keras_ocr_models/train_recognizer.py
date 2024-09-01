@@ -95,17 +95,35 @@ def generate_n_train(alphabet, backgrounds, fonts, batch_size=12, recognizer_bas
         ) for image_generator in recognition_image_generators
     ]
 
+    # recognizer.training_model.fit(
+    #     recognition_train_generator,
+    #     epochs=epochs,
+    #     steps_per_epoch=math.ceil(len(background_splits[0]) / batch_size),
+    #     callbacks=[
+    #         tf.keras.callbacks.CSVLogger(f'{recognizer_basepath}.csv', append=True),
+    #         tf.keras.callbacks.ModelCheckpoint(filepath=f'{recognizer_basepath}.h5', save_best_only=True)
+    #     ],
+    #     validation_data=recognition_val_generator,
+    #     validation_steps=math.ceil(len(background_splits[1]) / batch_size),
+    #     verbose=1,  # Set verbose to 1 or 2
+    #     workers=0,
+    # )
+
+
+    # Ensure verbose=1 or verbose=2 is set to display training progress
     recognizer.training_model.fit(
         recognition_train_generator,
         epochs=epochs,
         steps_per_epoch=math.ceil(len(background_splits[0]) / batch_size),
-        callbacks=[
-            tf.keras.callbacks.CSVLogger(f'{recognizer_basepath}.csv', append=True),
-            tf.keras.callbacks.ModelCheckpoint(filepath=f'{recognizer_basepath}.h5', save_best_only=True)
-        ],
         validation_data=recognition_val_generator,
         validation_steps=math.ceil(len(background_splits[1]) / batch_size),
         workers=0,
+        verbose=1,  # Ensure this is set to 1 or 2 for progress output
+        callbacks=[
+            tf.keras.callbacks.EarlyStopping(restore_best_weights=True, patience=5),
+            tf.keras.callbacks.CSVLogger(f'{recognizer_basepath}.csv', append=True),
+            tf.keras.callbacks.ModelCheckpoint(filepath=f'{recognizer_basepath}.h5', save_best_only=True)
+        ]
     )
 
 
