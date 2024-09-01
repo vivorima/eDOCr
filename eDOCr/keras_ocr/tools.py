@@ -132,7 +132,7 @@ def warpBox(
         )
         # print(f"  Perspective transformation matrix (M):\n{M}")
     except Exception as e:
-        # print(f"Error in calculating perspective transform: {e}")
+        print(f"Error in calculating perspective transform: {e}")
         raise
 
     # Apply the transformation
@@ -140,7 +140,7 @@ def warpBox(
         crop = cv2.warpPerspective(image, M, dsize=(int(scale * w), int(scale * h)))
         # print(f"  Cropped image shape: {crop.shape}")
     except Exception as e:
-        # print(f"Error in warping perspective: {e}")
+        print(f"Error in warping perspective: {e}")
         raise
 
     target_shape = (
@@ -155,7 +155,7 @@ def warpBox(
     try:
         full[: crop.shape[0], : crop.shape[1]] = crop
     except Exception as e:
-        # print(f"Error in copying crop to full image: {e}")
+        print(f"Error in copying crop to full image: {e}")
         raise
 
     if return_transform:

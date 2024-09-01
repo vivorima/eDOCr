@@ -118,7 +118,7 @@ def generate_n_train(alphabet, backgrounds, fonts, batch_size=12, recognizer_bas
         validation_data=recognition_val_generator,
         validation_steps=math.ceil(len(background_splits[1]) / batch_size),
         workers=0,
-        verbose=1,  # Ensure this is set to 1 or 2 for progress output
+        verbose=2,  # Ensure this is set to 1 or 2 for progress output
         callbacks=[
             tf.keras.callbacks.EarlyStopping(restore_best_weights=True, patience=5),
             tf.keras.callbacks.CSVLogger(f'{recognizer_basepath}.csv', append=True),
